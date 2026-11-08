@@ -202,6 +202,8 @@ export interface Character {
   isActive: boolean;
   /** Assigned seat uid, or null if no seat */
   seatId: string | null;
+  /** Ticket que atiende y qué necesita para avanzar (mensaje agentInfo). */
+  info?: { ticket?: string; ticketTitle?: string; needs?: string };
   /** Active speech bubble type, or null if none showing */
   bubbleType: 'permission' | 'waiting' | null;
   /** Only meaningful while bubbleType === 'waiting': true when the agent went

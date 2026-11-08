@@ -586,6 +586,12 @@ export function useExtensionMessages(
         });
         os.showPermissionBubble(id);
         playPermissionSound();
+      } else if (msg.type === 'agentInfo') {
+        os.setAgentInfo(msg.id as number, {
+          ticket: msg.ticket as string | undefined,
+          ticketTitle: msg.ticketTitle as string | undefined,
+          needs: msg.needs as string | undefined,
+        });
       } else if (msg.type === 'subagentToolPermission') {
         const id = msg.id as number;
         const parentToolId = msg.parentToolId as string;

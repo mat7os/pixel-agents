@@ -82,6 +82,15 @@ function getActivityText(
   return 'Idle';
 }
 
+/** Linea corta para la etiqueta: un permiso va por su primera linea, un mensaje por la ultima. */
+function shortNeeds(s: string): string {
+  const lines = s
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return (s.startsWith('Permiso:') ? lines[0] : lines[lines.length - 1]) ?? '';
+}
+
 function getFuelColor(ratio: number): string {
   if (ratio >= CONTEXT_CRITICAL_THRESHOLD) return CONTEXT_GAUGE_COLOR_CRITICAL;
   if (ratio >= CONTEXT_DANGER_THRESHOLD) return CONTEXT_GAUGE_COLOR_DANGER;
@@ -123,6 +132,7 @@ export function ToolOverlay({
   alwaysShowOverlay,
 }: ToolOverlayProps) {
   const [, setTick] = useState(0);
+  const [openInfoId, setOpenInfoId] = useState<number | null>(null);
   useEffect(() => {
     let rafId = 0;
     const tick = () => {
@@ -275,7 +285,10 @@ export function ToolOverlay({
 
         // Team info
         const teamRoleLabel = ch.isTeamLead ? 'LEAD' : ch.agentName || null;
-        const hasExtraLines = !!(ch.directoryName || teamRoleLabel);
+        const needsFull = !isSub ? ch.info?.needs : undefined;
+        const needsText = needsFull ? shortNeeds(needsFull) : undefined;
+        const ticketText = !isSub && ch.info?.ticket ? ch.info.ticket : null;
+        const hasExtraLines = !!(ch.directoryName || teamRoleLabel || ticketText || needsText);
 
         // Context gauge. Every agent gets one — lead, teammate, adopted,
         // headless — as soon as it has taken a turn. Sub-agents never do: they
@@ -306,6 +319,26 @@ export function ToolOverlay({
                   />
                 )}
                 <div className="flex flex-col gap-0 overflow-hidden">
+                  {ticketText && (
+                    <span
+                      className="overflow-hidden text-ellipsis block leading-none"
+                      style={{
+                        fontSize: '18px',
+                        color: TEAM_LEAD_COLOR,
+                        fontWeight: 'bold',
+                        pointerEvents: 'auto',
+                        cursor: 'pointer',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenInfoId(id);
+                      }}
+                      title={ch.info?.ticketTitle}
+                    >
+                      {ticketText}
+                      {ch.info?.ticketTitle ? ` · ${ch.info.ticketTitle}` : ''}
+                    </span>
+                  )}
                   {teamRoleLabel && (
                     <span
                       className="overflow-hidden text-ellipsis block leading-none"
@@ -327,6 +360,24 @@ export function ToolOverlay({
                   >
                     {activityText}
                   </span>
+                  {needsText && (
+                    <span
+                      className="overflow-hidden text-ellipsis block leading-none"
+                      style={{
+                        fontSize: '18px',
+                        color: 'var(--color-status-permission)',
+                        pointerEvents: 'auto',
+                        cursor: 'pointer',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenInfoId(id);
+                      }}
+                      title="Clic para ver completo"
+                    >
+                      {needsText}
+                    </span>
+                  )}
                   {ch.directoryName && (
                     <span className="text-2xs leading-none overflow-hidden text-ellipsis block">
                       {ch.directoryName}
@@ -373,6 +424,39 @@ export function ToolOverlay({
           </Fragment>
         );
       })}
+      {openInfoId !== null &&
+        (() => {
+          const info = officeState.characters.get(openInfoId)?.info;
+          if (!info) return null;
+          return (
+            <div
+              className="fixed inset-0 flex items-center justify-center bg-black/50"
+              style={{ zIndex: OVERLAY_LABEL_SELECTED_Z_INDEX + 10 }}
+              onClick={() => setOpenInfoId(null)}
+            >
+              <div
+                className="pixel-panel flex flex-col gap-6 p-12 max-w-[min(90vw,640px)] max-h-[80vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between gap-8">
+                  <span style={{ fontSize: '22px', color: TEAM_LEAD_COLOR, fontWeight: 'bold' }}>
+                    {info.ticket ?? 'Agente'}
+                    {info.ticketTitle ? ` - ${info.ticketTitle}` : ''}
+                  </span>
+                  <Button variant="ghost" size="icon" onClick={() => setOpenInfoId(null)}>
+                    ×
+                  </Button>
+                </div>
+                <div
+                  className="overflow-y-auto whitespace-pre-wrap wrap-break-words"
+                  style={{ fontSize: '20px' }}
+                >
+                  {info.needs ?? 'Sin mensaje pendiente'}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </>
   );
 }

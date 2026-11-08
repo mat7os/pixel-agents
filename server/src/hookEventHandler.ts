@@ -321,6 +321,8 @@ export class HookEventHandler {
         `[Pixel Agents] Hook: Agent ${agentId} - ${eventName} (session=${event.session_id.slice(0, 8)}...)`,
       );
 
+    this.applyInfo(agent, agentId, normEvent);
+
     // Dispatch on normalized AgentEvent.kind, not raw hook event names.
     // The TeammateIdle / TaskCompleted hooks normalize to `subagentTurnEnd` -- both
     // retain their raw payload for the team-routing handler's identity extraction.
@@ -602,6 +604,23 @@ export class HookEventHandler {
       id: agentId,
       parentToolId,
     });
+  }
+
+  /** Ticket y "qué necesita" del agente: se emite solo cuando cambian. */
+  private applyInfo(agent: AgentState, agentId: number, ev: AgentEvent): void {
+    const prev = agent.info ?? {};
+    const next = { ...prev, ...ev.info };
+    // Una herramienta nueva o el fin de turno sin texto limpian la necesidad anterior.
+    if ((ev.kind === 'toolStart' || ev.kind === 'turnEnd') && !ev.info?.needs)
+      next.needs = undefined;
+    if (
+      next.ticket === prev.ticket &&
+      next.ticketTitle === prev.ticketTitle &&
+      next.needs === prev.needs
+    )
+      return;
+    agent.info = next;
+    this.agents.broadcast({ type: 'agentInfo', id: agentId, ...next });
   }
 
   /** Handle PermissionRequest: cancel heuristic timer, show permission bubble on agent + sub-agents. */

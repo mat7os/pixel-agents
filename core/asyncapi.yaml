@@ -91,6 +91,7 @@ components:
         - $ref: '#/components/schemas/AgentToolsClear'
         - $ref: '#/components/schemas/AgentToolPermission'
         - $ref: '#/components/schemas/AgentToolPermissionClear'
+        - $ref: '#/components/schemas/AgentInfoMessage'
         # Sub-agent activity
         - $ref: '#/components/schemas/SubagentToolStart'
         - $ref: '#/components/schemas/SubagentToolDone'
@@ -343,6 +344,23 @@ components:
           const: agentToolPermission
         id:
           type: integer
+
+    AgentInfoMessage:
+      description: Ticket the agent works on and what it needs to move forward.
+      type: object
+      additionalProperties: false
+      required: [type, id]
+      properties:
+        type:
+          const: agentInfo
+        id:
+          type: integer
+        ticket:
+          type: string
+        ticketTitle:
+          type: string
+        needs:
+          type: string
 
     AgentToolPermissionClear:
       description: Permission prompt resolved.

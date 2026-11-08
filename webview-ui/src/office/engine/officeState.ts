@@ -930,6 +930,11 @@ export class OfficeState {
     }
   }
 
+  setAgentInfo(id: number, info: { ticket?: string; ticketTitle?: string; needs?: string }): void {
+    const ch = this.characters.get(id);
+    if (ch) ch.info = info;
+  }
+
   showWaitingBubble(id: number, awaitingInput = false): void {
     const ch = this.characters.get(id);
     if (ch) {

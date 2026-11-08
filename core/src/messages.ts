@@ -19,6 +19,7 @@ export type ServerMessage =
   | AgentToolsClear
   | AgentToolPermission
   | AgentToolPermissionClear
+  | AgentInfoMessage
   | SubagentToolStart
   | SubagentToolDone
   | SubagentClear
@@ -155,6 +156,14 @@ export interface AgentToolPermission {
 export interface AgentToolPermissionClear {
   type: 'agentToolPermissionClear';
   id: number;
+}
+
+export interface AgentInfoMessage {
+  type: 'agentInfo';
+  id: number;
+  ticket?: string;
+  ticketTitle?: string;
+  needs?: string;
 }
 
 export interface SubagentToolStart {

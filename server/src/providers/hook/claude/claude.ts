@@ -21,6 +21,7 @@ import {
   CLAUDE_SMALL_CONTEXT_WINDOW,
   CLAUDE_TERMINAL_NAME_PREFIX,
 } from './constants.js';
+import { buildInfo } from './ticketInfo.js';
 
 // ── formatToolStatus: moved from src/transcriptParser.ts ──
 
@@ -127,6 +128,15 @@ function getAllSessionRoots(): string[] {
 // the real tool id arrives later via JSONL polling.
 
 function normalizeHookEvent(
+  raw: Record<string, unknown>,
+): { sessionId: string; event: AgentEvent } | null {
+  const r = normalizeHookEventCore(raw);
+  if (!r) return r;
+  const info = buildInfo(raw, r.event.kind);
+  return info ? { sessionId: r.sessionId, event: { ...r.event, info } } : r;
+}
+
+function normalizeHookEventCore(
   raw: Record<string, unknown>,
 ): { sessionId: string; event: AgentEvent } | null {
   const eventName = raw.hook_event_name;

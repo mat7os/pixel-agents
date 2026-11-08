@@ -11,7 +11,18 @@ import type { TeamProvider } from './teamProvider.js';
 
 // ── Normalized Events (all provider types produce these) ──────
 
-export type AgentEvent =
+/** Datos extra por agente (ticket que atiende y qué necesita para avanzar). */
+export interface AgentInfo {
+  /** Número del ticket, p. ej. "TK-8". */
+  ticket?: string;
+  ticketTitle?: string;
+  /** Qué necesita para avanzar: permiso pendiente o resumen del último mensaje. */
+  needs?: string;
+}
+
+export type AgentEvent = AgentEventKind & { info?: AgentInfo };
+
+type AgentEventKind =
   | {
       kind: 'toolStart';
       toolId: string;

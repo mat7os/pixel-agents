@@ -85,6 +85,8 @@ export interface AgentState {
   palette?: number;
   /** Hue shift in degrees (0-360). Rotates the base palette colors. */
   hueShift?: number;
+  /** Ticket y necesidad actuales del agente (ver AgentInfo). */
+  info?: { ticket?: string; ticketTitle?: string; needs?: string };
 }
 
 export interface PersistedAgent {

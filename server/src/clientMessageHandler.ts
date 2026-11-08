@@ -626,6 +626,10 @@ function handleWebviewReady(send: WsSend, ctx: ClientMessageContext): void {
   // exist once the layout flush creates them. Without this a reconnecting
   // client shows bare characters until each agent takes another turn.
   resendAgentActivity(send, store);
+  // Ticket / necesidad de cada agente ya conocido (si no, un refresco los pierde)
+  for (const [id, agent] of store) {
+    if (agent.info) send({ type: 'agentInfo', id, ...agent.info });
+  }
 
   // 9. Re-announce live terminals AFTER existingAgents, so a browser that
   // reloaded (or a second tab) rebuilds its drawer tabs. The PTY outlives the
